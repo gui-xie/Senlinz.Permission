@@ -1,0 +1,112 @@
+name: Publish NuGet Packages
+
+on:
+  push:
+    tags:
+      - "v*"
+      - "V*"
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Resolve package version
+        id: version
+        shell: bash
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          version="${version#V}"
+          echo "value=${version}" >> "${GITHUB_OUTPUT}"
+          echo "tag=v${version}" >> "${GITHUB_OUTPUT}"
+
+      - name: Restore
+        run: |
+          dotnet restore Senlinz.Permissions.sln
+          dotnet restore tests/Senlinz.Permissions.Tests/Senlinz.Permissions.Tests.csproj
+
+      - name: Build
+        run: >
+          dotnet build Senlinz.Permissions.sln
+          --configuration Release
+          --no-restore
+          -p:GeneratePackageOnBuild=false
+          -p:ContinuousIntegrationBuild=true
+          -p:Version=${{ steps.version.outputs.value }}
+
+      - name: Run test runner
+        run: >
+          dotnet run
+          --project tests/Senlinz.Permissions.Tests/Senlinz.Permissions.Tests.csproj
+          --configuration Release
+          --no-restore
+          -p:GeneratePackageOnBuild=false
+
+      - name: Pack packages
+        run: >
+          dotnet pack Senlinz.Permissions.sln
+          --configuration Release
+          --no-build
+          --output artifacts
+          -p:ContinuousIntegrationBuild=true
+          -p:GeneratePackageOnBuild=false
+          -p:Version=${{ steps.version.outputs.value }}
+
+      - name: Upload release package artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-release-packages
+          path: |
+            artifacts/*.nupkg
+            artifacts/*.snupkg
+          if-no-files-found: error
+
+      - name: Publish packages to NuGet
+        run: >
+          dotnet nuget push artifacts/*.nupkg
+          --api-key "${{ secrets.NUGET_API_KEY }}"
+          --source "https://api.nuget.org/v3/index.json"
+          --skip-duplicate
+
+      - name: Publish symbol packages to NuGet
+        shell: bash
+        run: |
+          if compgen -G "artifacts/*.snupkg" > /dev/null; then
+            dotnet nuget push artifacts/*.snupkg \
+              --api-key "${{ secrets.NUGET_API_KEY }}" \
+              --source "https://api.nuget.org/v3/index.json" \
+              --skip-duplicate
+          else
+            echo "No symbol packages were produced."
+          fi
+
+      - name: Generate release notes from template
+        shell: bash
+        run: |
+          release_date="$(date -u +%F)"
+          sed \
+            -e "s/{{VERSION}}/${{ steps.version.outputs.value }}/g" \
+            -e "s/{{TAG}}/${{ steps.version.outputs.tag }}/g" \
+            -e "s/{{DATE}}/${release_date}/g" \
+            .github/release-template.md > artifacts/release-notes.md
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: ${{ steps.version.outputs.tag }}
+          body_path: artifacts/release-notes.md
+          files: |
+            artifacts/*.nupkg
+            artifacts/*.snupkg

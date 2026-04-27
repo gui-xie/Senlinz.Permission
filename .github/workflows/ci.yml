@@ -1,0 +1,63 @@
+name: Validate
+
+on:
+  push:
+    tags-ignore:
+      - "v*"
+      - "V*"
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: |
+          dotnet restore Senlinz.Permissions.sln
+          dotnet restore tests/Senlinz.Permissions.Tests/Senlinz.Permissions.Tests.csproj
+
+      - name: Build
+        run: >
+          dotnet build Senlinz.Permissions.sln
+          --configuration Release
+          --no-restore
+          -p:GeneratePackageOnBuild=false
+          -p:ContinuousIntegrationBuild=true
+
+      - name: Run test runner
+        run: >
+          dotnet run
+          --project tests/Senlinz.Permissions.Tests/Senlinz.Permissions.Tests.csproj
+          --configuration Release
+          --no-restore
+          -p:GeneratePackageOnBuild=false
+
+      - name: Pack
+        run: >
+          dotnet pack Senlinz.Permissions.sln
+          --configuration Release
+          --no-build
+          --output artifacts
+          -p:ContinuousIntegrationBuild=true
+          -p:GeneratePackageOnBuild=false
+
+      - name: Upload package artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: |
+            artifacts/*.nupkg
+            artifacts/*.snupkg
+          if-no-files-found: error
