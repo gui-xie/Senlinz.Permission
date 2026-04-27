@@ -12,9 +12,8 @@ public sealed class ParserTests
         var result = PermissionJsonParser.Parse(
             """
             {
-              "version": 1,
               "permissions": [
-                { "code": "users.read" }
+                "users.read"
               ]
             }
             """);
@@ -22,6 +21,8 @@ public sealed class ParserTests
         Assert.False(result.HasErrors);
         var permission = Assert.Single(result.Document!.Permissions);
         Assert.Equal("users.read", permission.Code);
+        Assert.Equal("users", permission.Group);
+        Assert.Equal(new[] { "users" }, result.Document.Groups.Select(group => group.Code));
     }
 
     [Fact]
@@ -30,7 +31,6 @@ public sealed class ParserTests
         var result = PermissionJsonParser.Parse(
             """
             {
-              "version": 1,
               "groups": [
                 { "code": "users", "name": "Users", "order": 10 },
                 { "code": "orders", "name": "Orders", "order": 1 }
@@ -58,7 +58,7 @@ public sealed class ParserTests
     [Fact]
     public void Reports_missing_required_root_properties()
     {
-        var result = PermissionJsonParser.Parse("""{ "version": 1 }""");
+        var result = PermissionJsonParser.Parse("{}");
 
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "SP002");
     }
@@ -97,19 +97,39 @@ public sealed class ParserTests
     }
 
     [Fact]
-    public void Warns_for_unknown_group()
+    public void Infers_group_hierarchy_for_shorthand_permissions()
     {
         var result = PermissionJsonParser.Parse(
             """
             {
-              "version": 1,
+              "groups": ["user.list"],
+              "permissions": [
+                "user.read",
+                "user.list.edit"
+              ]
+            }
+            """);
+
+        Assert.False(result.HasErrors);
+        Assert.Equal(new[] { "user", "user.list" }, result.Document!.Groups.Select(group => group.Code));
+        Assert.Equal("user", result.Document.Permissions.Single(permission => permission.Code == "user.read").Group);
+        Assert.Equal("user.list", result.Document.Permissions.Single(permission => permission.Code == "user.list.edit").Group);
+    }
+
+    [Fact]
+    public void Treats_explicit_permission_group_as_declared_group()
+    {
+        var result = PermissionJsonParser.Parse(
+            """
+            {
               "permissions": [
                 { "code": "users.read", "group": "users" }
               ]
             }
             """);
 
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "SP006");
+        Assert.False(result.Diagnostics.Any(diagnostic => diagnostic.Id == "SP006"));
+        Assert.Equal(new[] { "users" }, result.Document!.Groups.Select(group => group.Code));
     }
 
     [Fact]

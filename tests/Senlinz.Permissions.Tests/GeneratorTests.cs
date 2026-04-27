@@ -71,6 +71,29 @@ public sealed class GeneratorTests
         Assert.Contains("namespace Configured.Security", permissionsSource);
     }
 
+        [Fact]
+        public void Generates_catalog_from_shorthand_permissions()
+        {
+                var result = RunGenerator(
+                        """
+                        {
+                            "permissions": [
+                                "user.read",
+                                "user.list.edit"
+                            ]
+                        }
+                        """);
+
+                Assert.DoesNotContain(result.Diagnostics, diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+
+                var catalogSource = result.GeneratedSources.Single(source => source.HintName == "PermissionCatalog.g.cs").SourceText.ToString();
+                Assert.Contains("new global::Senlinz.Permissions.PermissionGroupDefinition(", catalogSource);
+                Assert.Contains("\"user\"", catalogSource);
+                Assert.Contains("\"user.list\"", catalogSource);
+                Assert.Contains("group: \"user\"", catalogSource);
+                Assert.Contains("group: \"user.list\"", catalogSource);
+        }
+
     [Fact]
     public void Reports_missing_file_when_strict()
     {

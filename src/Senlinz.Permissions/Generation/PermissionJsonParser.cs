@@ -47,22 +47,24 @@ public static class PermissionJsonParser
             }
 
             var root = document.RootElement;
-            var version = ReadRequiredVersion(root, diagnostics, path);
+            var version = ReadVersion(root, diagnostics, path);
             var generatedNamespace = ReadOptionalString(root, "namespace", "$.namespace", diagnostics, path);
             var className = ReadOptionalString(root, "className", "$.className", diagnostics, path);
             var catalogClassName = ReadOptionalString(root, "catalogClassName", "$.catalogClassName", diagnostics, path);
             var groups = ReadGroups(root, diagnostics, path);
             var permissions = ReadPermissions(root, diagnostics, path);
 
-            ValidateGroups(groups, diagnostics, path);
-            ValidatePermissions(groups, permissions, diagnostics, path);
+            var normalized = Normalize(groups, permissions);
 
-            var sortedGroups = groups
+            ValidateGroups(normalized.Groups, diagnostics, path);
+            ValidatePermissions(normalized.Groups, normalized.Permissions, diagnostics, path);
+
+            var sortedGroups = normalized.Groups
                 .OrderBy(static group => group.Order ?? int.MaxValue)
                 .ThenBy(static group => group.Code, StringComparer.Ordinal)
                 .ToArray();
 
-            var sortedPermissions = permissions
+            var sortedPermissions = normalized.Permissions
                 .OrderBy(static permission => permission.Order ?? int.MaxValue)
                 .ThenBy(static permission => permission.Code, StringComparer.Ordinal)
                 .ToArray();
@@ -79,21 +81,14 @@ public static class PermissionJsonParser
         }
     }
 
-    private static int ReadRequiredVersion(
+    private static int ReadVersion(
         JsonElement root,
         List<PermissionValidationDiagnostic> diagnostics,
         string? path)
     {
-        if (!root.TryGetProperty("version", out var versionElement))
+        if (!root.TryGetProperty("version", out var versionElement) || versionElement.ValueKind == JsonValueKind.Null)
         {
-            diagnostics.Add(new PermissionValidationDiagnostic(
-                "SP002",
-                PermissionDiagnosticSeverity.Error,
-                "Required root property 'version' is missing.",
-                path,
-                jsonPath: "$.version"));
-
-            return 0;
+            return 1;
         }
 
         if (!versionElement.TryGetInt32(out var version) || version != 1)
@@ -139,12 +134,40 @@ public static class PermissionJsonParser
             var itemPath = $"$.groups[{index}]";
             index++;
 
+            if (groupElement.ValueKind == JsonValueKind.String)
+            {
+                var groupCode = groupElement.GetString();
+                if (string.IsNullOrWhiteSpace(groupCode))
+                {
+                    diagnostics.Add(new PermissionValidationDiagnostic(
+                        "SP002",
+                        PermissionDiagnosticSeverity.Error,
+                        "Permission group code cannot be empty.",
+                        path,
+                        jsonPath: itemPath));
+                    continue;
+                }
+
+                if (!PermissionIdentifier.IsValidGroupCode(groupCode))
+                {
+                    diagnostics.Add(new PermissionValidationDiagnostic(
+                        "SP003",
+                        PermissionDiagnosticSeverity.Error,
+                        $"Permission group code '{groupCode}' is invalid.",
+                        path,
+                        jsonPath: itemPath));
+                }
+
+                groups.Add(new PermissionGroupSpec(groupCode, null, null, null, null, null));
+                continue;
+            }
+
             if (groupElement.ValueKind != JsonValueKind.Object)
             {
                 diagnostics.Add(new PermissionValidationDiagnostic(
                     "SP003",
                     PermissionDiagnosticSeverity.Error,
-                    "Permission group entries must be JSON objects.",
+                    "Permission group entries must be JSON objects or strings.",
                     path,
                     jsonPath: itemPath));
                 continue;
@@ -221,12 +244,40 @@ public static class PermissionJsonParser
             var itemPath = $"$.permissions[{index}]";
             index++;
 
+            if (permissionElement.ValueKind == JsonValueKind.String)
+            {
+                var permissionCode = permissionElement.GetString();
+                if (string.IsNullOrWhiteSpace(permissionCode))
+                {
+                    diagnostics.Add(new PermissionValidationDiagnostic(
+                        "SP003",
+                        PermissionDiagnosticSeverity.Error,
+                        "Permission code cannot be empty.",
+                        path,
+                        jsonPath: itemPath));
+                    continue;
+                }
+
+                if (!PermissionIdentifier.IsValidPermissionCode(permissionCode))
+                {
+                    diagnostics.Add(new PermissionValidationDiagnostic(
+                        "SP003",
+                        PermissionDiagnosticSeverity.Error,
+                        $"Permission code '{permissionCode}' is invalid. Expected format is 'area.action'.",
+                        path,
+                        jsonPath: itemPath));
+                }
+
+                permissions.Add(new PermissionSpec(permissionCode, null, null, Array.Empty<string>(), null, null, null, Array.Empty<string>(), null));
+                continue;
+            }
+
             if (permissionElement.ValueKind != JsonValueKind.Object)
             {
                 diagnostics.Add(new PermissionValidationDiagnostic(
                     "SP003",
                     PermissionDiagnosticSeverity.Error,
-                    "Permission entries must be JSON objects.",
+                    "Permission entries must be JSON objects or strings.",
                     path,
                     jsonPath: itemPath));
                 continue;
@@ -267,6 +318,95 @@ public static class PermissionJsonParser
         }
 
         return permissions;
+    }
+
+    private static (IReadOnlyList<PermissionGroupSpec> Groups, IReadOnlyList<PermissionSpec> Permissions) Normalize(
+        IReadOnlyList<PermissionGroupSpec> groups,
+        IReadOnlyList<PermissionSpec> permissions)
+    {
+        var normalizedGroups = new List<PermissionGroupSpec>(groups);
+        var knownGroupCodes = new HashSet<string>(groups.Select(static group => group.Code), StringComparer.Ordinal);
+
+        foreach (var group in groups)
+        {
+            AddGroupHierarchy(group.Code, normalizedGroups, knownGroupCodes);
+        }
+
+        var normalizedPermissions = new List<PermissionSpec>(permissions.Count);
+        foreach (var permission in permissions)
+        {
+            var groupCode = string.IsNullOrWhiteSpace(permission.Group)
+                ? InferGroupCode(permission.Code)
+                : permission.Group;
+
+            if (!string.IsNullOrWhiteSpace(groupCode))
+            {
+                AddGroupHierarchy(groupCode!, normalizedGroups, knownGroupCodes);
+            }
+
+            normalizedPermissions.Add(
+                string.Equals(groupCode, permission.Group, StringComparison.Ordinal)
+                    ? permission
+                    : WithGroup(permission, groupCode));
+        }
+
+        return (normalizedGroups, normalizedPermissions);
+    }
+
+    private static void AddGroupHierarchy(
+        string code,
+        List<PermissionGroupSpec> groups,
+        HashSet<string> knownGroupCodes)
+    {
+        if (!PermissionIdentifier.IsValidGroupCode(code))
+        {
+            return;
+        }
+
+        foreach (var groupCode in EnumerateGroupHierarchy(code))
+        {
+            if (knownGroupCodes.Add(groupCode))
+            {
+                groups.Add(new PermissionGroupSpec(groupCode, null, null, null, null, null));
+            }
+        }
+    }
+
+    private static IEnumerable<string> EnumerateGroupHierarchy(string code)
+    {
+        var start = 0;
+        while (true)
+        {
+            var separatorIndex = code.IndexOf('.', start);
+            if (separatorIndex < 0)
+            {
+                yield return code;
+                yield break;
+            }
+
+            yield return code.Substring(0, separatorIndex);
+            start = separatorIndex + 1;
+        }
+    }
+
+    private static string? InferGroupCode(string permissionCode)
+    {
+        var separatorIndex = permissionCode.LastIndexOf('.');
+        return separatorIndex <= 0 ? null : permissionCode.Substring(0, separatorIndex);
+    }
+
+    private static PermissionSpec WithGroup(PermissionSpec permission, string? group)
+    {
+        return new PermissionSpec(
+            permission.Code,
+            permission.Name,
+            group,
+            permission.Requires,
+            permission.Description,
+            permission.LabelKey,
+            permission.DescriptionKey,
+            permission.Tags,
+            permission.Order);
     }
 
     private static void ValidateGroups(

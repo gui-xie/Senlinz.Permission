@@ -1,9 +1,10 @@
 # Quick Start
 
-1. Add `permission.json` to the consuming project root.
-2. Reference `Senlinz.Permissions` for generation and `Senlinz.Permissions.Abstractions` for runtime catalog models.
-3. Use generated constants from the target project's root namespace.
-4. Register generated permissions with ASP.NET Core when server authorization policies are needed.
+1. Add direct package references for generation, runtime abstractions, and optional ASP.NET Core integration.
+2. Add `permission.json` to the consuming project root.
+3. Start with shorthand strings and switch to object entries only when you need metadata.
+4. Use generated constants from the target project's root namespace.
+5. Register generated permissions with ASP.NET Core when server authorization policies are needed.
 
 ```xml
 <ItemGroup>
@@ -15,10 +16,10 @@
 
 ```json
 {
-  "version": 1,
+  "groups": ["user", "user.list"],
   "permissions": [
-    { "code": "users.read", "name": "View users" },
-    { "code": "users.create", "requires": ["users.read"] }
+    "user.read",
+    { "code": "user.list.edit", "requires": ["user.read"] }
   ]
 }
 ```
@@ -29,5 +30,7 @@ builder.Services.AddAuthorization(options =>
     options.AddPermissionPolicies(PermissionCatalog.All);
 });
 ```
+
+`user.read` is assigned to group `user`, and `user.list.edit` is assigned to group `user.list`. Parent groups are inferred automatically.
 
 Permission codes are stable authorization contract values. Rename them only as a breaking application change.

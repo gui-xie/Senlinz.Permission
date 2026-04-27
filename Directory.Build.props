@@ -5,13 +5,22 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-    <Version>1.0.0</Version>
+    <VersionPrefix>1.0.0</VersionPrefix>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
     <Authors>Senlinz</Authors>
     <Company>Senlinz</Company>
+    <PackageProjectUrl>https://github.com/gui-xie/Senlinz.Permission</PackageProjectUrl>
     <RepositoryUrl>https://github.com/gui-xie/Senlinz.Permission</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>1.0.0 initial release: shorthand groups and permissions, inferred parent groups, runtime catalog abstractions, and ASP.NET Core authorization helpers.</PackageReleaseNotes>
     <PackageTags>permissions;authorization;source-generator;aspnetcore</PackageTags>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
 </Project>
