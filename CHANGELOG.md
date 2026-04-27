@@ -15,9 +15,11 @@ The format follows Keep a Changelog.
 - Added automatic permission group inference from dotted permission codes.
 - Added automatic parent group inference for nested groups such as `user` and `user.list`.
 - Added bilingual repository readmes plus release documentation assets.
+- Added bilingual documentation site entry points for GitHub Pages publishing.
 
 ### Changed
 
-- Simplified the published permission schema reference so it focuses on `groups` and `permissions`.
+- Removed the published JSON schema artifact in favor of structure-first documentation.
 - Moved generator build props packaging to `build/` so permission generation stays a direct-reference-only feature.
+- Retargeted the generator and runtime support to `.NET 8` build tooling and `netstandard2.0` runtime compatibility.
 - Added package metadata, documentation file generation, and symbol package settings for release packaging.

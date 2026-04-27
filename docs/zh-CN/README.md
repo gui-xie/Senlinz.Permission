@@ -1,6 +1,6 @@
 # Senlinz.Permissions
 
-**中文** | [English](./README.md)
+**中文** | [English](../README.md)
 
 一个面向 .NET 的权限源码生成器。它从单个 `permission.json` 文件生成强类型的权限常量、权限目录，以及可选的本地化访问器。
 
@@ -12,9 +12,6 @@
 
 - 文档站点：<https://gui-xie.github.io/Senlinz.Permission/>
 - 当前已发布包版本：`1.0.0`
-- 发布说明：[RELEASE_NOTES.md](./RELEASE_NOTES.md)
-- 更新日志：[CHANGELOG.md](./CHANGELOG.md)
-- 补充文档：[docs/quick-start.md](./docs/quick-start.md)、[docs/permission-file.md](./docs/permission-file.md)、[docs/aspnetcore.md](./docs/aspnetcore.md)
 
 ## 快速导航
 
@@ -74,11 +71,7 @@ dotnet add package Senlinz.Permissions.AspNetCore
 </ItemGroup>
 ```
 
-如果你只需要共享运行时契约而不需要源码生成，可以单独引用 `Senlinz.Permissions.Abstractions`。
-
 ### 2. 创建 `permission.json`
-
-对于直接引用该包的项目，包会自动把配置的权限文件加入 `AdditionalFiles`。默认文件名是 `permission.json`。
 
 ```json
 {
@@ -144,15 +137,6 @@ builder.Services.AddAuthorization(options =>
 `Senlinz.Permissions.AspNetCore` 增加了 `AuthorizationOptions.AddPermissionPolicies` 扩展方法。
 
 默认策略名就是权限编码，默认声明类型是 `permission`。
-
-## MSBuild 选项
-
-- `SenlinzPermissionFile`：权限 JSON 路径。默认值：`permission.json`。
-- `SenlinzPermissionNamespace`：生成命名空间覆盖值。
-- `SenlinzPermissionClassName`：常量类名。默认值：`Permissions`。
-- `SenlinzPermissionCatalogClassName`：权限目录类名。默认值：`PermissionCatalog`。
-- `SenlinzPermissionStrict`：当为 `true` 时，缺失文件会报错。默认值：`true`。
-- `SenlinzPermissionGenerateLString`：当引用本地化 abstractions 时生成本地化访问器。默认值：`false`。
 
 ## 发布与文档站点
 

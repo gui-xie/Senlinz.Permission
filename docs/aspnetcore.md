@@ -2,6 +2,15 @@
 
 `Senlinz.Permissions.AspNetCore` adds `AuthorizationOptions.AddPermissionPolicies`.
 
+Install the package alongside `Senlinz.Permissions` when you want generated permissions to become authorization policies:
+
+```xml
+<ItemGroup>
+    <PackageReference Include="Senlinz.Permissions" Version="1.0.0" PrivateAssets="all" />
+    <PackageReference Include="Senlinz.Permissions.AspNetCore" Version="1.0.0" />
+</ItemGroup>
+```
+
 ```csharp
 builder.Services.AddAuthorization(options =>
 {

@@ -1,6 +1,6 @@
 # Senlinz.Permissions
 
-**English** | [Chinese](./README.zh-CN.md)
+**English** | [Chinese](./zh-CN/README.md)
 
 A JSON-driven permission source generator for .NET that generates strongly typed permission constants, catalogs, and optional localization accessors from a single `permission.json` file.
 
@@ -12,11 +12,8 @@ Note: using more traditional C# syntax mainly reduces compiler and tooling requi
 
 - Documentation site: <https://gui-xie.github.io/Senlinz.Permission/>
 - Latest package version: `1.0.0`
-- Release notes: [RELEASE_NOTES.md](./RELEASE_NOTES.md)
-- Changelog: [CHANGELOG.md](./CHANGELOG.md)
-- Additional docs: [docs/quick-start.md](./docs/quick-start.md), [docs/permission-file.md](./docs/permission-file.md), [docs/aspnetcore.md](./docs/aspnetcore.md)
 
-## Quick Navigation
+## Quick navigation
 
 - [Features](#features)
 - [Package selection](#package-selection)
@@ -35,7 +32,7 @@ Note: using more traditional C# syntax mainly reduces compiler and tooling requi
 - Generate `PermissionL` accessors when `Senlinz.Localization.Abstractions` is referenced.
 - Publish `Senlinz.Permissions`, `Senlinz.Permissions.Abstractions`, and `Senlinz.Permissions.AspNetCore` as separate NuGet packages.
 
-## Package Selection
+## Package selection
 
 ### `Senlinz.Permissions`
 
@@ -63,7 +60,7 @@ Use this package when you want to register generated permissions as ASP.NET Core
 dotnet add package Senlinz.Permissions.AspNetCore
 ```
 
-## Quick Start
+## Quick start
 
 ### 1. Reference the packages
 
@@ -74,11 +71,7 @@ dotnet add package Senlinz.Permissions.AspNetCore
 </ItemGroup>
 ```
 
-If you only need the shared contracts without source generation, reference `Senlinz.Permissions.Abstractions` instead.
-
 ### 2. Create `permission.json`
-
-The package automatically adds the configured permission file to `AdditionalFiles` for direct package references. The default file name is `permission.json`.
 
 ```json
 {
@@ -113,7 +106,7 @@ builder.Services.AddAuthorization(options =>
 });
 ```
 
-## Permission File Rules
+## Permission file rules
 
 - `groups` and `permissions` can contain strings when no extra metadata is needed.
 - Use object entries only when you need metadata such as `name`, `labelKey`, `requires`, `tags`, or `order`.
@@ -122,7 +115,7 @@ builder.Services.AddAuthorization(options =>
 - `version` is optional and defaults to `1`.
 - Prefer MSBuild properties for namespace and class overrides instead of placing generator-specific metadata in `permission.json`.
 
-## Generated Types
+## Generated types
 
 ### `Permissions`
 
@@ -139,22 +132,13 @@ builder.Services.AddAuthorization(options =>
 - Generated only when localization abstractions are referenced and `SenlinzPermissionGenerateLString` is enabled.
 - Uses explicit `labelKey` values when provided and falls back to `permissions.<code>.label`.
 
-## ASP.NET Core Integration
+## ASP.NET Core integration
 
 `Senlinz.Permissions.AspNetCore` adds `AuthorizationOptions.AddPermissionPolicies`.
 
 The default policy name is the permission code, and the default claim type is `permission`.
 
-## MSBuild Options
-
-- `SenlinzPermissionFile`: permission JSON path. Default: `permission.json`.
-- `SenlinzPermissionNamespace`: generated namespace override.
-- `SenlinzPermissionClassName`: constants class name. Default: `Permissions`.
-- `SenlinzPermissionCatalogClassName`: catalog class name. Default: `PermissionCatalog`.
-- `SenlinzPermissionStrict`: missing file is an error when `true`. Default: `true`.
-- `SenlinzPermissionGenerateLString`: generate localization accessors when localization abstractions are referenced. Default: `false`.
-
-## Release And Documentation Publishing
+## Release and documentation publishing
 
 - Keep `README.md`, `README.zh-CN.md`, `docs/README.md`, and `docs/zh-CN/README.md` aligned.
 - Update `CHANGELOG.md` and `RELEASE_NOTES.md` before publishing the next package version.

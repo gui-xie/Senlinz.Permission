@@ -192,7 +192,7 @@ internal static class PermissionSourceEmitter
     {
         if (!string.IsNullOrEmpty(value))
         {
-            arguments.Add(name + ": " + Literal(value));
+            arguments.Add(name + ": " + Literal(value!));
         }
     }
 

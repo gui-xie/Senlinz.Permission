@@ -148,7 +148,7 @@ public static class PermissionJsonParser
                     continue;
                 }
 
-                if (!PermissionIdentifier.IsValidGroupCode(groupCode))
+                if (!PermissionIdentifier.IsValidGroupCode(groupCode!))
                 {
                     diagnostics.Add(new PermissionValidationDiagnostic(
                         "SP003",
@@ -158,7 +158,7 @@ public static class PermissionJsonParser
                         jsonPath: itemPath));
                 }
 
-                groups.Add(new PermissionGroupSpec(groupCode, null, null, null, null, null));
+                groups.Add(new PermissionGroupSpec(groupCode!, null, null, null, null, null));
                 continue;
             }
 
@@ -185,7 +185,7 @@ public static class PermissionJsonParser
                 continue;
             }
 
-            if (!PermissionIdentifier.IsValidGroupCode(code))
+            if (!PermissionIdentifier.IsValidGroupCode(code!))
             {
                 diagnostics.Add(new PermissionValidationDiagnostic(
                     "SP003",
@@ -196,7 +196,7 @@ public static class PermissionJsonParser
             }
 
             groups.Add(new PermissionGroupSpec(
-                code,
+                code!,
                 ReadOptionalString(groupElement, "name", itemPath + ".name", diagnostics, path),
                 ReadOptionalString(groupElement, "labelKey", itemPath + ".labelKey", diagnostics, path),
                 ReadOptionalString(groupElement, "description", itemPath + ".description", diagnostics, path),
@@ -258,7 +258,7 @@ public static class PermissionJsonParser
                     continue;
                 }
 
-                if (!PermissionIdentifier.IsValidPermissionCode(permissionCode))
+                if (!PermissionIdentifier.IsValidPermissionCode(permissionCode!))
                 {
                     diagnostics.Add(new PermissionValidationDiagnostic(
                         "SP003",
@@ -268,7 +268,7 @@ public static class PermissionJsonParser
                         jsonPath: itemPath));
                 }
 
-                permissions.Add(new PermissionSpec(permissionCode, null, null, Array.Empty<string>(), null, null, null, Array.Empty<string>(), null));
+                permissions.Add(new PermissionSpec(permissionCode!, null, null, Array.Empty<string>(), null, null, null, Array.Empty<string>(), null));
                 continue;
             }
 
@@ -295,7 +295,7 @@ public static class PermissionJsonParser
                 continue;
             }
 
-            if (!PermissionIdentifier.IsValidPermissionCode(code))
+            if (!PermissionIdentifier.IsValidPermissionCode(code!))
             {
                 diagnostics.Add(new PermissionValidationDiagnostic(
                     "SP003",
@@ -306,7 +306,7 @@ public static class PermissionJsonParser
             }
 
             permissions.Add(new PermissionSpec(
-                code,
+                code!,
                 ReadOptionalString(permissionElement, "name", itemPath + ".name", diagnostics, path),
                 ReadOptionalString(permissionElement, "group", itemPath + ".group", diagnostics, path),
                 ReadOptionalStringArray(permissionElement, "requires", itemPath + ".requires", "SP011", diagnostics, path),
