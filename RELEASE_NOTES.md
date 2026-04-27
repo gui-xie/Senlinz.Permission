@@ -24,5 +24,4 @@
 - Run `dotnet build Senlinz.Permissions.sln`.
 - Run `dotnet run --project tests/Senlinz.Permissions.Tests/Senlinz.Permissions.Tests.csproj`.
 - Run `dotnet pack -c Release Senlinz.Permissions.sln`.
-- Publish the NuGet packages.
-- Create and push the `v1.0.0` tag.
+- Create and push the `v1.0.0` tag to publish `.nupkg` packages to NuGet.org and GitHub Packages.

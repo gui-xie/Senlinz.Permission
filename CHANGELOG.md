@@ -6,6 +6,10 @@ The format follows Keep a Changelog.
 
 ## [Unreleased]
 
+### Added
+
+- Added GitHub Packages publishing to the release workflow alongside NuGet.org package publishing.
+
 ## [1.0.0] - 2026-04-27
 
 ### Added
