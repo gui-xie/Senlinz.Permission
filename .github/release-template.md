@@ -20,4 +20,4 @@
 ## Notes
 
 - Verify that CHANGELOG.md, RELEASE_NOTES.md, README.md, README.zh-CN.md, docs/README.md, and docs/zh-CN/README.md are aligned.
-- Confirm GitHub Pages deployment and NuGet publishing completed successfully.
+- Confirm GitHub Pages deployment plus NuGet.org and GitHub Packages publishing completed successfully.

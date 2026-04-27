@@ -159,3 +159,4 @@ The default policy name is the permission code, and the default claim type is `p
 - Keep `README.md`, `README.zh-CN.md`, `docs/README.md`, and `docs/zh-CN/README.md` aligned.
 - Update `CHANGELOG.md` and `RELEASE_NOTES.md` before publishing the next package version.
 - Validate with `dotnet build Senlinz.Permissions.sln`, `dotnet run --project tests/Senlinz.Permissions.Tests/Senlinz.Permissions.Tests.csproj`, and `dotnet pack -c Release Senlinz.Permissions.sln`.
+- Push a `vX.Y.Z` tag to publish `.nupkg` packages to NuGet.org and GitHub Packages automatically.

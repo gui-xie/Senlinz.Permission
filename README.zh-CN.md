@@ -159,3 +159,4 @@ builder.Services.AddAuthorization(options =>
 - 保持 `README.md`、`README.zh-CN.md`、`docs/README.md`、`docs/zh-CN/README.md` 内容同步。
 - 发布前同时更新 `CHANGELOG.md` 和 `RELEASE_NOTES.md`。
 - 用 `dotnet build Senlinz.Permissions.sln`、`dotnet run --project tests/Senlinz.Permissions.Tests/Senlinz.Permissions.Tests.csproj`、`dotnet pack -c Release Senlinz.Permissions.sln` 做最终验证。
+- 推送 `vX.Y.Z` 标签后，会自动把 `.nupkg` 包发布到 NuGet.org 和 GitHub Packages。
