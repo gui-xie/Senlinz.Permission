@@ -13,6 +13,8 @@ namespace Senlinz.Permissions;
 [Generator]
 public sealed class PermissionSourceGenerator : IIncrementalGenerator
 {
+    private static readonly char[] PathSeparators = { '/' };
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var optionsProvider = context.AnalyzerConfigOptionsProvider
@@ -194,38 +196,42 @@ public sealed class PermissionSourceGenerator : IIncrementalGenerator
 
     private static bool IsPathUnderFolder(string path, string folderPath)
     {
-        var folderSegments = SplitPathSegments(folderPath);
-        if (folderSegments.Length == 0)
+        var normalizedFolderPath = JoinPathSegments(folderPath);
+        if (normalizedFolderPath.Length == 0)
         {
             return true;
         }
 
-        var pathSegments = SplitPathSegments(path);
-        for (var startIndex = 0; startIndex <= pathSegments.Length - folderSegments.Length; startIndex++)
+        var normalizedPath = JoinPathSegments(path);
+        var searchText = normalizedFolderPath + "/";
+        for (var startIndex = 0; startIndex <= normalizedPath.Length - searchText.Length; startIndex++)
         {
-            var isMatch = true;
-            for (var folderIndex = 0; folderIndex < folderSegments.Length; folderIndex++)
+            var matchIndex = normalizedPath.IndexOf(searchText, startIndex, StringComparison.OrdinalIgnoreCase);
+            if (matchIndex < 0)
             {
-                if (!string.Equals(pathSegments[startIndex + folderIndex], folderSegments[folderIndex], StringComparison.OrdinalIgnoreCase))
-                {
-                    isMatch = false;
-                    break;
-                }
+                return false;
             }
 
-            if (isMatch && startIndex + folderSegments.Length < pathSegments.Length)
+            if (matchIndex == 0 || normalizedPath[matchIndex - 1] == '/')
             {
                 return true;
             }
+
+            startIndex = matchIndex;
         }
 
         return false;
     }
 
+    private static string JoinPathSegments(string path)
+    {
+        return string.Join("/", SplitPathSegments(path));
+    }
+
     private static string[] SplitPathSegments(string path)
     {
         var segments = new List<string>();
-        foreach (var segment in NormalizePath(path).Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries))
+        foreach (var segment in NormalizePath(path).Split(PathSeparators, StringSplitOptions.RemoveEmptyEntries))
         {
             if (string.Equals(segment, ".", StringComparison.Ordinal))
             {
