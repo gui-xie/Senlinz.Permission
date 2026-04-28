@@ -103,6 +103,76 @@ public sealed class GeneratorTests
     }
 
     [Fact]
+    public void Finds_default_permission_file_under_p_folder()
+    {
+        var result = RunGenerator(
+            """
+            {
+              "permissions": [
+                "users.read"
+              ]
+            }
+            """,
+            filePaths: new[] { "/src/SampleApp/P/permission.json" });
+
+        Assert.DoesNotContain(result.Diagnostics, diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+        Assert.Contains(result.GeneratedSources, source => source.HintName == "Permissions.g.cs");
+    }
+
+    [Fact]
+    public void Prefers_p_folder_permission_file_over_other_matches()
+    {
+        var result = RunGenerator(
+            new Dictionary<string, string>
+            {
+                ["/src/SampleApp/permission.json"] =
+                """
+                {
+                  "permissions": [
+                    "users.read"
+                  ]
+                }
+                """,
+                ["/src/SampleApp/P/permission.json"] =
+                """
+                {
+                  "permissions": [
+                    "orders.read"
+                  ]
+                }
+                """
+            });
+
+        Assert.DoesNotContain(result.Diagnostics, diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+
+        var permissionsSource = result.GeneratedSources.Single(source => source.HintName == "Permissions.g.cs").SourceText.ToString();
+        Assert.Contains("public static class Orders", permissionsSource);
+        Assert.DoesNotContain("public static class Users", permissionsSource);
+    }
+
+    [Fact]
+    public void Uses_configured_permission_folder_and_file_name()
+    {
+        var result = RunGenerator(
+            """
+            {
+              "permissions": [
+                "users.read"
+              ]
+            }
+            """,
+            new Dictionary<string, string>
+            {
+                ["build_property.SenlinzPermissionFolder"] = "Permissions",
+                ["build_property.SenlinzPermissionFile"] = "app-permissions.json"
+            },
+            new[] { "/src/SampleApp/Permissions/app-permissions.json" });
+
+        Assert.DoesNotContain(result.Diagnostics, diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+        Assert.Contains(result.GeneratedSources, source => source.HintName == "Permissions.g.cs");
+    }
+
+    [Fact]
     public void Warns_missing_file_when_not_strict()
     {
         var result = RunGenerator(
@@ -117,7 +187,28 @@ public sealed class GeneratorTests
 
     private static GeneratorDriverRunResult RunGenerator(
         string? json,
+        IReadOnlyDictionary<string, string>? properties = null,
+        IReadOnlyList<string>? filePaths = null)
+    {
+        if (json is null)
+        {
+            return RunGenerator(Array.Empty<KeyValuePair<string, string>>(), properties);
+        }
+
+        var paths = filePaths ?? new[] { "/src/SampleApp/P/permission.json" };
+        return RunGenerator(paths.Select(path => new KeyValuePair<string, string>(path, json)), properties);
+    }
+
+    private static GeneratorDriverRunResult RunGenerator(
+        IReadOnlyDictionary<string, string> files,
         IReadOnlyDictionary<string, string>? properties = null)
+    {
+        return RunGenerator(files.Select(static item => item), properties);
+    }
+
+    private static GeneratorDriverRunResult RunGenerator(
+        IEnumerable<KeyValuePair<string, string>> files,
+        IReadOnlyDictionary<string, string>? properties)
     {
         var parseOptions = (CSharpParseOptions)CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
         var compilation = CSharpCompilation.Create(
@@ -126,9 +217,9 @@ public sealed class GeneratorTests
             GetReferences(),
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
-        var additionalTexts = json is null
-            ? Array.Empty<AdditionalText>()
-            : new AdditionalText[] { new InMemoryAdditionalText("/src/SampleApp/permission.json", json) };
+        var additionalTexts = files
+            .Select(item => (AdditionalText)new InMemoryAdditionalText(item.Key, item.Value))
+            .ToArray();
 
         var options = new Dictionary<string, string>
         {

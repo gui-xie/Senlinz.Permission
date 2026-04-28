@@ -35,7 +35,7 @@ public sealed class PermissionSourceGenerator : IIncrementalGenerator
         PermissionGeneratorOptions options,
         Compilation compilation)
     {
-        var permissionFile = FindPermissionFile(files, options.PermissionFile);
+        var permissionFile = FindPermissionFile(files, options.PermissionFolder, options.PermissionFile);
         if (permissionFile is null)
         {
             var id = options.Strict ? "SP009" : "SP008";
@@ -45,7 +45,7 @@ public sealed class PermissionSourceGenerator : IIncrementalGenerator
                 new PermissionValidationDiagnostic(
                     id,
                     severity,
-                    $"Permission file '{options.PermissionFile}' was not found."));
+                    $"Permission file '{FormatConfiguredPermissionPath(options.PermissionFolder, options.PermissionFile)}' was not found."));
             return;
         }
 
@@ -118,9 +118,31 @@ public sealed class PermissionSourceGenerator : IIncrementalGenerator
         }
     }
 
-    private static AdditionalText? FindPermissionFile(ImmutableArray<AdditionalText> files, string configuredFile)
+    private static AdditionalText? FindPermissionFile(ImmutableArray<AdditionalText> files, string configuredFolder, string configuredFile)
     {
-        foreach (var file in files.OrderBy(static file => file.Path, StringComparer.Ordinal))
+        var orderedFiles = files.OrderBy(static file => file.Path, StringComparer.Ordinal).ToImmutableArray();
+        if (HasDirectorySegments(configuredFile))
+        {
+            foreach (var file in orderedFiles)
+            {
+                if (MatchesConfiguredFile(file.Path, configuredFile))
+                {
+                    return file;
+                }
+            }
+
+            return null;
+        }
+
+        foreach (var file in orderedFiles)
+        {
+            if (IsPathUnderFolder(file.Path, configuredFolder) && MatchesConfiguredFile(file.Path, configuredFile))
+            {
+                return file;
+            }
+        }
+
+        foreach (var file in orderedFiles)
         {
             if (MatchesConfiguredFile(file.Path, configuredFile))
             {
@@ -129,6 +151,21 @@ public sealed class PermissionSourceGenerator : IIncrementalGenerator
         }
 
         return null;
+    }
+
+    private static string FormatConfiguredPermissionPath(string configuredFolder, string configuredFile)
+    {
+        if (string.IsNullOrWhiteSpace(configuredFile))
+        {
+            return configuredFolder;
+        }
+
+        if (Path.IsPathRooted(configuredFile) || HasDirectorySegments(configuredFile) || string.IsNullOrWhiteSpace(configuredFolder))
+        {
+            return configuredFile;
+        }
+
+        return NormalizePath(Path.Combine(configuredFolder, configuredFile));
     }
 
     private static bool MatchesConfiguredFile(string filePath, string configuredFile)
@@ -147,6 +184,69 @@ public sealed class PermissionSourceGenerator : IIncrementalGenerator
         }
 
         return normalizedFilePath.EndsWith("/" + normalizedConfiguredFile, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool HasDirectorySegments(string path)
+    {
+        return path.IndexOf('/') >= 0 || path.IndexOf('\\') >= 0;
+    }
+
+    private static bool IsPathUnderFolder(string path, string folderPath)
+    {
+        var folderSegments = SplitPathSegments(folderPath);
+        if (folderSegments.Length == 0)
+        {
+            return true;
+        }
+
+        var pathSegments = SplitPathSegments(path);
+        for (var startIndex = 0; startIndex <= pathSegments.Length - folderSegments.Length; startIndex++)
+        {
+            var isMatch = true;
+            for (var folderIndex = 0; folderIndex < folderSegments.Length; folderIndex++)
+            {
+                if (!string.Equals(pathSegments[startIndex + folderIndex], folderSegments[folderIndex], StringComparison.OrdinalIgnoreCase))
+                {
+                    isMatch = false;
+                    break;
+                }
+            }
+
+            if (isMatch && startIndex + folderSegments.Length < pathSegments.Length)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static string[] SplitPathSegments(string path)
+    {
+        var segments = new System.Collections.Generic.List<string>();
+        foreach (var segment in NormalizePath(path).Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (string.Equals(segment, ".", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            if (string.Equals(segment, "..", StringComparison.Ordinal))
+            {
+                if (segments.Count > 0 && !string.Equals(segments[segments.Count - 1], "..", StringComparison.Ordinal))
+                {
+                    segments.RemoveAt(segments.Count - 1);
+                    continue;
+                }
+
+                segments.Add(segment);
+                continue;
+            }
+
+            segments.Add(segment);
+        }
+
+        return segments.ToArray();
     }
 
     private static string NormalizePath(string path)

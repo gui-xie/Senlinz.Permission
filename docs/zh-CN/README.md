@@ -71,7 +71,16 @@ dotnet add package Senlinz.Permissions.AspNetCore
 </ItemGroup>
 ```
 
-### 2. 创建 `permission.json`
+### 2. 创建 `P/permission.json`
+
+默认把权限文件放到 `P/` 目录下：
+
+```text
+MyProject/
+├── P/
+│   └── permission.json
+└── MyProject.csproj
+```
 
 ```json
 {
@@ -137,6 +146,16 @@ builder.Services.AddAuthorization(options =>
 `Senlinz.Permissions.AspNetCore` 增加了 `AuthorizationOptions.AddPermissionPolicies` 扩展方法。
 
 默认策略名就是权限编码，默认声明类型是 `permission`。
+
+## MSBuild 选项
+
+- `SenlinzPermissionFolder`：权限文件夹路径。默认值：`P`。
+- `SenlinzPermissionFile`：权限 JSON 文件名。默认值：`permission.json`。
+- `SenlinzPermissionNamespace`：生成命名空间覆盖值。
+- `SenlinzPermissionClassName`：常量类名。默认值：`Permissions`。
+- `SenlinzPermissionCatalogClassName`：权限目录类名。默认值：`PermissionCatalog`。
+- `SenlinzPermissionStrict`：当为 `true` 时，缺失文件会报错。默认值：`true`。
+- `SenlinzPermissionGenerateLString`：当引用本地化 abstractions 时生成本地化访问器。默认值：`false`。
 
 ## 发布与文档站点
 

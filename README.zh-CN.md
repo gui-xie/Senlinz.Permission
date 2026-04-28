@@ -76,9 +76,16 @@ dotnet add package Senlinz.Permissions.AspNetCore
 
 如果你只需要共享运行时契约而不需要源码生成，可以单独引用 `Senlinz.Permissions.Abstractions`。
 
-### 2. 创建 `permission.json`
+### 2. 创建 `P/permission.json`
 
-对于直接引用该包的项目，包会自动把配置的权限文件加入 `AdditionalFiles`。默认文件名是 `permission.json`。
+对于直接引用该包的项目，包会自动把 `$(SenlinzPermissionFolder)/**/*.json` 加入 `AdditionalFiles`。默认把 `permission.json` 放到 `P/` 目录下即可。
+
+```text
+MyProject/
+├── P/
+│   └── permission.json
+└── MyProject.csproj
+```
 
 ```json
 {
@@ -147,7 +154,8 @@ builder.Services.AddAuthorization(options =>
 
 ## MSBuild 选项
 
-- `SenlinzPermissionFile`：权限 JSON 路径。默认值：`permission.json`。
+- `SenlinzPermissionFolder`：权限文件夹路径。默认值：`P`。
+- `SenlinzPermissionFile`：权限 JSON 文件名。默认值：`permission.json`。
 - `SenlinzPermissionNamespace`：生成命名空间覆盖值。
 - `SenlinzPermissionClassName`：常量类名。默认值：`Permissions`。
 - `SenlinzPermissionCatalogClassName`：权限目录类名。默认值：`PermissionCatalog`。

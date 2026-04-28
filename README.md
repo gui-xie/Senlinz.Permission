@@ -76,9 +76,16 @@ dotnet add package Senlinz.Permissions.AspNetCore
 
 If you only need the shared contracts without source generation, reference `Senlinz.Permissions.Abstractions` instead.
 
-### 2. Create `permission.json`
+### 2. Create `P/permission.json`
 
-The package automatically adds the configured permission file to `AdditionalFiles` for direct package references. The default file name is `permission.json`.
+The package automatically adds `$(SenlinzPermissionFolder)/**/*.json` to `AdditionalFiles` for direct package references. By default, put `permission.json` under `P/`.
+
+```text
+MyProject/
+├── P/
+│   └── permission.json
+└── MyProject.csproj
+```
 
 ```json
 {
@@ -147,7 +154,8 @@ The default policy name is the permission code, and the default claim type is `p
 
 ## MSBuild Options
 
-- `SenlinzPermissionFile`: permission JSON path. Default: `permission.json`.
+- `SenlinzPermissionFolder`: permission folder path. Default: `P`.
+- `SenlinzPermissionFile`: permission JSON file name. Default: `permission.json`.
 - `SenlinzPermissionNamespace`: generated namespace override.
 - `SenlinzPermissionClassName`: constants class name. Default: `Permissions`.
 - `SenlinzPermissionCatalogClassName`: catalog class name. Default: `PermissionCatalog`.

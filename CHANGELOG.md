@@ -10,6 +10,11 @@ The format follows Keep a Changelog.
 
 - Added GitHub Packages publishing to the release workflow alongside NuGet.org package publishing.
 
+### Changed
+
+- Defaulted permission discovery to `P/permission.json` and automatically included `$(SenlinzPermissionFolder)/**/*.json` for direct package references.
+- Added `SenlinzPermissionFolder` so consumers can override the default permission folder without extra `AdditionalFiles` configuration.
+
 ## [1.0.0] - 2026-04-27
 
 ### Added

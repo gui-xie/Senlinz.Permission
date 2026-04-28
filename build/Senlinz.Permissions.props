@@ -1,5 +1,6 @@
 <Project>
   <PropertyGroup>
+    <SenlinzPermissionFolder Condition="'$(SenlinzPermissionFolder)' == ''">P</SenlinzPermissionFolder>
     <SenlinzPermissionFile Condition="'$(SenlinzPermissionFile)' == ''">permission.json</SenlinzPermissionFile>
     <SenlinzPermissionClassName Condition="'$(SenlinzPermissionClassName)' == ''">Permissions</SenlinzPermissionClassName>
     <SenlinzPermissionCatalogClassName Condition="'$(SenlinzPermissionCatalogClassName)' == ''">PermissionCatalog</SenlinzPermissionCatalogClassName>
@@ -8,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <CompilerVisibleProperty Include="SenlinzPermissionFolder" />
     <CompilerVisibleProperty Include="SenlinzPermissionFile" />
     <CompilerVisibleProperty Include="SenlinzPermissionNamespace" />
     <CompilerVisibleProperty Include="SenlinzPermissionClassName" />
@@ -17,6 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <AdditionalFiles Include="$(SenlinzPermissionFile)" Condition="Exists('$(SenlinzPermissionFile)')" />
+    <AdditionalFiles Include="$(SenlinzPermissionFolder)/**/*.json" Condition="Exists('$(SenlinzPermissionFolder)')" />
   </ItemGroup>
 </Project>
