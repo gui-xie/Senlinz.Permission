@@ -5,6 +5,7 @@ namespace Senlinz.Permissions.Generation;
 internal sealed class PermissionGeneratorOptions
 {
     private PermissionGeneratorOptions(
+        string permissionFolder,
         string permissionFile,
         string? generatedNamespace,
         string permissionClassName,
@@ -14,6 +15,7 @@ internal sealed class PermissionGeneratorOptions
         string? rootNamespace,
         string? assemblyName)
     {
+        PermissionFolder = permissionFolder;
         PermissionFile = permissionFile;
         GeneratedNamespace = generatedNamespace;
         PermissionClassName = permissionClassName;
@@ -23,6 +25,8 @@ internal sealed class PermissionGeneratorOptions
         RootNamespace = rootNamespace;
         AssemblyName = assemblyName;
     }
+
+    public string PermissionFolder { get; }
 
     public string PermissionFile { get; }
 
@@ -45,6 +49,7 @@ internal sealed class PermissionGeneratorOptions
         var globalOptions = provider.GlobalOptions;
 
         return new PermissionGeneratorOptions(
+            GetString(globalOptions, "SenlinzPermissionFolder", "P"),
             GetString(globalOptions, "SenlinzPermissionFile", "permission.json"),
             GetOptionalString(globalOptions, "SenlinzPermissionNamespace"),
             GetString(globalOptions, "SenlinzPermissionClassName", "Permissions"),

@@ -12,14 +12,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Senlinz.Permissions" HintPath="../../src/Senlinz.Permissions/bin/$(Configuration)/netstandard2.0/Senlinz.Permissions.dll" />
-    <Reference Include="Senlinz.Permissions.Abstractions" HintPath="../../src/Senlinz.Permissions.Abstractions/bin/$(Configuration)/netstandard2.0/Senlinz.Permissions.Abstractions.dll" />
-    <Reference Include="Senlinz.Permissions.AspNetCore" HintPath="../../src/Senlinz.Permissions.AspNetCore/bin/$(Configuration)/netstandard2.0/Senlinz.Permissions.AspNetCore.dll" />
+    <ProjectReference Include="../../src/Senlinz.Permissions/Senlinz.Permissions.csproj" />
+    <ProjectReference Include="../../src/Senlinz.Permissions.Abstractions/Senlinz.Permissions.Abstractions.csproj" />
+    <ProjectReference Include="../../src/Senlinz.Permissions.AspNetCore/Senlinz.Permissions.AspNetCore.csproj" />
   </ItemGroup>
-
-  <Target Name="BuildReferencedProjects" BeforeTargets="ResolveReferences" Condition="'$(SolutionPath)' == '' or '$(SolutionPath)' == '*Undefined*'">
-    <MSBuild Projects="../../src/Senlinz.Permissions.Abstractions/Senlinz.Permissions.Abstractions.csproj;../../src/Senlinz.Permissions/Senlinz.Permissions.csproj;../../src/Senlinz.Permissions.AspNetCore/Senlinz.Permissions.AspNetCore.csproj"
-             Targets="Build"
-             Properties="Configuration=$(Configuration)" />
-  </Target>
 </Project>

@@ -1,5 +1,12 @@
 # Release Notes
 
+## Unreleased
+
+### Highlights
+
+- Default permission discovery now mirrors `Senlinz.Localization`: place `permission.json` under `P/` and it is picked up automatically for direct package references.
+- Added `SenlinzPermissionFolder` to override the default permission folder while keeping `SenlinzPermissionFile` as the file-name override.
+
 ## 1.0.0 - 2026-04-27
 
 ### Highlights

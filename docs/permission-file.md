@@ -109,9 +109,14 @@ Keep generator-specific overrides in MSBuild instead of `permission.json`:
 
 ```xml
 <PropertyGroup>
+  <SenlinzPermissionFolder>P</SenlinzPermissionFolder>
   <SenlinzPermissionFile>permission.json</SenlinzPermissionFile>
   <SenlinzPermissionNamespace>MyApp.Security</SenlinzPermissionNamespace>
   <SenlinzPermissionClassName>Permissions</SenlinzPermissionClassName>
   <SenlinzPermissionCatalogClassName>PermissionCatalog</SenlinzPermissionCatalogClassName>
 </PropertyGroup>
 ```
+
+- `SenlinzPermissionFolder` defaults to `P`.
+- `SenlinzPermissionFile` defaults to `permission.json`.
+- Direct package references automatically include `$(SenlinzPermissionFolder)/**/*.json` in `AdditionalFiles`.

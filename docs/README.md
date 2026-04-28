@@ -71,7 +71,16 @@ dotnet add package Senlinz.Permissions.AspNetCore
 </ItemGroup>
 ```
 
-### 2. Create `permission.json`
+### 2. Create `P/permission.json`
+
+Put the default permission file under `P/`:
+
+```text
+MyProject/
+├── P/
+│   └── permission.json
+└── MyProject.csproj
+```
 
 ```json
 {
@@ -137,6 +146,16 @@ builder.Services.AddAuthorization(options =>
 `Senlinz.Permissions.AspNetCore` adds `AuthorizationOptions.AddPermissionPolicies`.
 
 The default policy name is the permission code, and the default claim type is `permission`.
+
+## MSBuild options
+
+- `SenlinzPermissionFolder`: permission folder path. Default: `P`.
+- `SenlinzPermissionFile`: permission JSON file name. Default: `permission.json`.
+- `SenlinzPermissionNamespace`: generated namespace override.
+- `SenlinzPermissionClassName`: constants class name. Default: `Permissions`.
+- `SenlinzPermissionCatalogClassName`: catalog class name. Default: `PermissionCatalog`.
+- `SenlinzPermissionStrict`: missing file is an error when `true`. Default: `true`.
+- `SenlinzPermissionGenerateLString`: generate localization accessors when localization abstractions are referenced. Default: `false`.
 
 ## Release and documentation publishing
 
