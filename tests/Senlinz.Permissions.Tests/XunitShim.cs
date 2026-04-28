@@ -87,6 +87,14 @@ public static class Assert
         }
     }
 
+    public static void DoesNotContain(string expectedSubstring, string actualString)
+    {
+        if (actualString is not null && actualString.Contains(expectedSubstring, StringComparison.Ordinal))
+        {
+            Fail($"Expected string not to contain '{expectedSubstring}'.");
+        }
+    }
+
     public static void NotNull(object? value)
     {
         if (value is null)

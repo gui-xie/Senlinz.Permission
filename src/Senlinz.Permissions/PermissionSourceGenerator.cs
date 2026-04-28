@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -223,7 +224,7 @@ public sealed class PermissionSourceGenerator : IIncrementalGenerator
 
     private static string[] SplitPathSegments(string path)
     {
-        var segments = new System.Collections.Generic.List<string>();
+        var segments = new List<string>();
         foreach (var segment in NormalizePath(path).Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries))
         {
             if (string.Equals(segment, ".", StringComparison.Ordinal))

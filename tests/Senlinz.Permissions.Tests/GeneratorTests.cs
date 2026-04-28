@@ -147,7 +147,7 @@ public sealed class GeneratorTests
 
         var permissionsSource = result.GeneratedSources.Single(source => source.HintName == "Permissions.g.cs").SourceText.ToString();
         Assert.Contains("public static class Orders", permissionsSource);
-        Assert.False(permissionsSource.Contains("public static class Users", StringComparison.Ordinal));
+        Assert.DoesNotContain("public static class Users", permissionsSource);
     }
 
     [Fact]
